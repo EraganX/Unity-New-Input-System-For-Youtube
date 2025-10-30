@@ -1,30 +1,73 @@
+using System;
 using UnityEngine;
-using UnityEngine.InputSystem;
+using UnityEngine.InputSystem; // Using the new Input System package
 
+[RequireComponent(typeof(Rigidbody))]
 public class PlayerControl : MonoBehaviour
 {
-    /*    private void OnJump()
-        {
-            print("Jump Action");
-        }
+    private PlayerInputActions playerInputActions;
+    private Rigidbody rb;
 
-        private void OnMove(InputValue value)
-        {
-            Vector2 moveInput = value.Get<Vector2>();
-            print("Move Action");
-        }*/
+    public float moveSpeed = 5f;
+    public float jumpForce = 5f;
+    private Vector2 moveInput;
+    private Vector3 moveDirection;
 
-    public void Jump(InputAction.CallbackContext context)
+    private void Awake()
     {
-        if (context.performed)
+        playerInputActions = new PlayerInputActions();
+        rb = GetComponent<Rigidbody>();
+    }
+
+    private void OnEnable()
+    {
+        playerInputActions.Player.Enable();
+        playerInputActions.Player.Jump.performed += OnJumpPerformed;
+    }
+
+    private void OnDisable()
+    {
+        playerInputActions.Player.Disable();
+        playerInputActions.Player.Jump.performed -= OnJumpPerformed;
+    }
+
+    private void Update()
+    {
+        moveInput = playerInputActions.Player.Move.ReadValue<Vector2>();
+        moveDirection = new Vector3(moveInput.x, 0, moveInput.y);
+    }
+
+    private void FixedUpdate()
+    {
+        Vector3 newVelocity = moveDirection * moveSpeed;
+        newVelocity.y = rb.linearVelocity.y; // Preserve existing vertical velocity
+        rb.linearVelocity = newVelocity;
+    }
+
+    private bool isGrounded = true;
+
+    private void OnJumpPerformed(InputAction.CallbackContext context)
+    {
+        if (isGrounded && context.performed)
         {
-            print("Jumping");
+            rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
         }
     }
 
-    public void Movement(InputAction.CallbackContext context)
+    private void OnCollisionEnter(Collision collision)
     {
-        Vector2 moveInput = context.ReadValue<Vector2>();
-        print("Moving");
+        if (collision.gameObject.CompareTag("Ground"))
+        {
+            isGrounded = true;
+        }
     }
+
+    private void OnCollisionExit(Collision collision)
+    {
+        if (collision.gameObject.CompareTag("Ground"))
+        {
+            isGrounded = false;
+        }
+    }
+
 }
