@@ -13,6 +13,10 @@ public class PlayerControl : MonoBehaviour
     private Vector2 moveInput;
     private Vector3 moveDirection;
 
+    [Header("UI")]
+    public GameObject buttonContainer;
+    public bool uiOpen = false;
+
     private void Awake()
     {
         playerInputActions = new PlayerInputActions();
@@ -23,12 +27,38 @@ public class PlayerControl : MonoBehaviour
     {
         playerInputActions.Player.Enable();
         playerInputActions.Player.Jump.performed += OnJumpPerformed;
+
+        playerInputActions.Player.PauseMenuOpen.performed += OnPauseMenu;
+        playerInputActions.UI.PauseMenuExit.performed += OnPauseMenu;
+    }
+
+    private void OnPauseMenu(InputAction.CallbackContext context)
+    {
+        if (context.performed)
+        {
+            uiOpen = !uiOpen;
+            if (uiOpen)
+            {
+                playerInputActions.Player.Disable();
+                playerInputActions.UI.Enable();
+            }
+            else
+            {
+                playerInputActions.UI.Disable();
+                playerInputActions.Player.Enable();
+            }
+
+            buttonContainer.SetActive(uiOpen);
+        }
     }
 
     private void OnDisable()
     {
         playerInputActions.Player.Disable();
         playerInputActions.Player.Jump.performed -= OnJumpPerformed;
+
+        playerInputActions.Player.PauseMenuOpen.performed -= OnPauseMenu;
+        playerInputActions.UI.PauseMenuExit.performed -= OnPauseMenu;
     }
 
     private void Update()
