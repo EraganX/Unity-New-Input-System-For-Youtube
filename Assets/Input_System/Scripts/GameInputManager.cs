@@ -5,13 +5,15 @@ using UnityEngine.InputSystem;
 public class GameInputManager : MonoBehaviour
 {
     public static GameInputManager instace;
-    private PlayerInputActions playerInputAction;
+    public PlayerInputActions playerInputAction;
 
     public Vector2 MoveInputs { get; private set; }
     public bool JumpInput { get; private set; }
     public bool MenuOpen { get; private set; }
 
     public event System.Action ToggleMenuEvent;
+
+    private const string BINDINGS_PREFS_KEY = "InputBindings";
 
     private void Awake()
     {
@@ -22,6 +24,8 @@ public class GameInputManager : MonoBehaviour
         }
 
         playerInputAction = new PlayerInputActions();
+
+        LoadBinding();
     }
 
     private void OnEnable()
@@ -102,4 +106,50 @@ public class GameInputManager : MonoBehaviour
     {
         MoveInputs = playerInputAction.Player.Move.ReadValue<Vector2>();
     }
+
+
+    #region ----- Key Binding -----
+
+    public void StartRebindings(InputAction actionToRebind, int bindingIndex, Action onRebindComplete, Action onRebindCancel)
+    {
+        playerInputAction.Disable();
+
+        actionToRebind.PerformInteractiveRebinding(bindingIndex)
+            .WithControlsExcluding("Mouse")
+            .WithCancelingThrough("<Keyboad>/escape")
+            .OnComplete(operation =>
+            {
+                operation.Dispose();
+                playerInputAction.Enable();
+                onRebindComplete?.Invoke();
+                SaveRibind();
+            })
+            .OnCancel(operation =>
+            {
+                operation.Dispose();
+                playerInputAction.Enable();
+                onRebindCancel?.Invoke();
+            })
+            .Start();
+    }
+
+
+    public void SaveRibind()
+    {
+        string bindingJson = playerInputAction.SaveBindingOverridesAsJson();
+        PlayerPrefs.SetString(BINDINGS_PREFS_KEY, bindingJson);
+        PlayerPrefs.Save();
+    }
+
+    public void LoadBinding()
+    {
+        if (PlayerPrefs.HasKey(BINDINGS_PREFS_KEY))
+        {
+            string bindingJson = PlayerPrefs.GetString(BINDINGS_PREFS_KEY);
+            playerInputAction.LoadBindingOverridesFromJson(bindingJson);
+        }
+    }
+
+
+    #endregion
 }

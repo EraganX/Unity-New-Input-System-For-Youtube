@@ -47,6 +47,17 @@
                     "isPartOfComposite": false
                 },
                 {
+                    "name": "",
+                    "id": "57a1fefc-0878-49bd-bfdb-9c865453af04",
+                    "path": "<Mouse>/rightButton",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Jump",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
                     "name": "2D Vector",
                     "id": "9db5446d-9a27-42dd-b4d9-17c4038301c8",
                     "path": "2DVector",
